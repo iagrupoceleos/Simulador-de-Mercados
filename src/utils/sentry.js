@@ -1,100 +1,60 @@
 /**
  * Prometheus – Sentry Error Monitoring Integration (SCOUT-008)
- * CDN-based lazy loading of Sentry SDK with configurable DSN.
+ * Works with the Sentry Loader Script pre-loaded in index.html.
+ * The loader auto-initializes Sentry with the DSN baked into the script URL.
+ * This module provides helper wrappers for capturing errors and context.
  */
 
-let sentryLoaded = false;
-let SentrySDK = null;
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  Sentry SDK Loader
+//  Sentry SDK Reference (loaded via index.html)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-/**
- * Lazy-load Sentry from CDN.
- */
-async function loadSentrySDK() {
-    if (sentryLoaded || typeof window.Sentry !== 'undefined') {
-        SentrySDK = window.Sentry;
-        return;
-    }
-
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://browser.sentry-cdn.com/8.48.0/bundle.min.js';
-        script.crossOrigin = 'anonymous';
-        script.onload = () => {
-            sentryLoaded = true;
-            SentrySDK = window.Sentry;
-            resolve();
-        };
-        script.onerror = () => reject(new Error('Failed to load Sentry SDK'));
-        document.head.appendChild(script);
-    });
+function getSentry() {
+    return typeof window !== 'undefined' ? window.Sentry : null;
 }
 
 /**
- * Initialize Sentry error monitoring.
- * @param {object} config
- * @param {string} config.dsn - Sentry DSN (get from sentry.io project settings)
- * @param {string} [config.environment='production']
- * @param {number} [config.sampleRate=1.0] - Error sample rate (0-1)
- * @param {string} [config.release] - App version
+ * Configure Sentry with additional options after loader init.
+ * Call this from main.js on app startup.
+ * @param {object} [config]
  */
-export async function initSentry(config = {}) {
-    try {
-        await loadSentrySDK();
-
-        if (!SentrySDK || !config.dsn) {
-            console.warn('[Sentry] No DSN provided. Error monitoring disabled.');
-            return false;
-        }
-
-        SentrySDK.init({
-            dsn: config.dsn,
-            environment: config.environment || (location.hostname === 'localhost' ? 'development' : 'production'),
-            release: config.release || `prometheus@${getAppVersion()}`,
-            sampleRate: config.sampleRate ?? 1.0,
-            integrations: [
-                SentrySDK.browserTracingIntegration?.() || null,
-            ].filter(Boolean),
-            tracesSampleRate: 0.2,
-            beforeSend(event) {
-                // Scrub sensitive data
-                if (event.request?.cookies) delete event.request.cookies;
-                return event;
-            },
-        });
-
-        // Set default tags
-        SentrySDK.setTag('app', 'prometheus');
-        SentrySDK.setTag('locale', document.documentElement.lang || 'es');
-
-        console.info('[Sentry] ✅ Initialized successfully');
-        return true;
-    } catch (err) {
-        console.warn('[Sentry] Init failed:', err.message);
+export function configureSentry(config = {}) {
+    const Sentry = getSentry();
+    if (!Sentry) {
+        console.warn('[Sentry] SDK not loaded. Error monitoring disabled.');
         return false;
     }
+
+    // Set default tags
+    Sentry.setTag('app', 'prometheus');
+    Sentry.setTag('version', '2.0.0');
+    Sentry.setTag('locale', document.documentElement.lang || 'es');
+
+    if (config.environment) Sentry.setTag('environment', config.environment);
+    if (config.release) Sentry.setTag('release', config.release);
+
+    console.info('[Sentry] ✅ Configured successfully');
+    return true;
 }
 
 /**
  * Capture an error in Sentry.
  * @param {Error} error
- * @param {object} [context] - Additional context
+ * @param {object} [context] - { module, action, extra, level }
  */
 export function captureError(error, context = {}) {
-    if (!SentrySDK) {
+    const Sentry = getSentry();
+    if (!Sentry) {
         console.error('[Sentry:offline]', error);
         return;
     }
 
-    SentrySDK.withScope((scope) => {
+    Sentry.withScope((scope) => {
         if (context.module) scope.setTag('module', context.module);
         if (context.action) scope.setTag('action', context.action);
         if (context.extra) scope.setExtras(context.extra);
         if (context.level) scope.setLevel(context.level);
-        SentrySDK.captureException(error);
+        Sentry.captureException(error);
     });
 }
 
@@ -104,11 +64,12 @@ export function captureError(error, context = {}) {
  * @param {'info'|'warning'|'error'} [level='info']
  */
 export function captureMessage(message, level = 'info') {
-    if (!SentrySDK) {
+    const Sentry = getSentry();
+    if (!Sentry) {
         console.log(`[Sentry:offline][${level}]`, message);
         return;
     }
-    SentrySDK.captureMessage(message, level);
+    Sentry.captureMessage(message, level);
 }
 
 /**
@@ -116,7 +77,8 @@ export function captureMessage(message, level = 'info') {
  * @param {object} user - { id, email, username }
  */
 export function setUser(user) {
-    if (SentrySDK) SentrySDK.setUser(user);
+    const Sentry = getSentry();
+    if (Sentry) Sentry.setUser(user);
 }
 
 /**
@@ -126,8 +88,9 @@ export function setUser(user) {
  * @param {object} [data]
  */
 export function addBreadcrumb(category, message, data) {
-    if (SentrySDK) {
-        SentrySDK.addBreadcrumb({ category, message, data, level: 'info' });
+    const Sentry = getSentry();
+    if (Sentry) {
+        Sentry.addBreadcrumb({ category, message, data, level: 'info' });
     }
 }
 
@@ -135,9 +98,5 @@ export function addBreadcrumb(category, message, data) {
  * Check if Sentry is active.
  */
 export function isSentryActive() {
-    return sentryLoaded && !!SentrySDK;
-}
-
-function getAppVersion() {
-    return '2.0.0'; // Sync with package.json
+    return !!getSentry();
 }

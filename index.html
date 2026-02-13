@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prometheus – Motor de Simulación Adversaria | Inventario Cero</title>
-  <meta name="description" content="Plataforma avanzada de simulación y wargaming impulsada por IA para alcanzar riesgo de inventario cero en e-commerce." />
+  <meta name="description"
+    content="Plataforma avanzada de simulación y wargaming impulsada por IA para alcanzar riesgo de inventario cero en e-commerce." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+  <!-- Sentry Error Monitoring (SCOUT-008) -->
+  <script src="https://js.sentry-cdn.com/20f82e85fe46cc7ada4c19b2eab8adf2.min.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
   <div id="app">
     <!-- Sidebar -->
@@ -34,9 +42,12 @@
         <h3 class="sim-overlay__title">Ejecutando Simulación</h3>
         <p id="sim-status-text" class="sim-overlay__status">Inicializando agentes...</p>
         <div class="sim-overlay__stats">
-          <div class="stat-chip"><span class="stat-chip__label">Iteraciones</span><span id="stat-iter" class="stat-chip__value">0</span></div>
-          <div class="stat-chip"><span class="stat-chip__label">Agentes</span><span id="stat-agents" class="stat-chip__value">0</span></div>
-          <div class="stat-chip"><span class="stat-chip__label">Tiempo</span><span id="stat-time" class="stat-chip__value">0s</span></div>
+          <div class="stat-chip"><span class="stat-chip__label">Iteraciones</span><span id="stat-iter"
+              class="stat-chip__value">0</span></div>
+          <div class="stat-chip"><span class="stat-chip__label">Agentes</span><span id="stat-agents"
+              class="stat-chip__value">0</span></div>
+          <div class="stat-chip"><span class="stat-chip__label">Tiempo</span><span id="stat-time"
+              class="stat-chip__value">0s</span></div>
         </div>
         <button id="btn-cancel-sim" class="btn btn--ghost">Cancelar</button>
       </div>
@@ -45,4 +56,5 @@
 
   <script type="module" src="/src/main.js"></script>
 </body>
+
 </html>
