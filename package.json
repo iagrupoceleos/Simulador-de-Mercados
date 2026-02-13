@@ -1,0 +1,22 @@
+{
+  "name": "prometheus-engine",
+  "version": "1.0.0",
+  "description": "Prometheus – Motor de Simulación Adversaria y Wargaming para Inventario Cero en E-commerce",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.7",
+    "dexie": "^4.3.0"
+  }
+}
